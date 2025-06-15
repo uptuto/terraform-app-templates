@@ -27,7 +27,7 @@ jobs:
       - name: Install Python deps
         run: pip install pyyaml
 
-      - name: Generate tfvars files from apps.yaml
+      - name: Generate tfvars files using .py script
         run: |
           mkdir -p terraform/vars
           python3 scripts/generate_tfvars.py
@@ -41,6 +41,3 @@ jobs:
           for f in ../terraform/vars/*.auto.tfvars.json; do
             terraform plan -var-file="$f"
           done
-
-      # Terraform Apply is intentionally skipped because the workspace is VCS-connected.
-      # Terraform Cloud will handle apply after merge automatically.
