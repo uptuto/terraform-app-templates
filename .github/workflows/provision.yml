@@ -40,22 +40,18 @@ jobs:
       
       - name: Terraform Plan
         run: |
-          for f in terraform/vars/*.auto.tfvars.json; do
-            cd terraform
-            terraform workspace select default || terraform workspace new default
-            terraform init
-            terraform plan -var-file="../$f"
-            cd ..
+          cd terraform
+          terraform init
+          for f in ../terraform/vars/*.auto.tfvars.json; do
+            terraform plan -var-file="$f"
           done
       
       - name: Terraform Apply (Post-Merge Only)
         if: github.event_name == 'push'
         run: |
-          for f in terraform/vars/*.auto.tfvars.json; do
-            cd terraform
-            terraform workspace select default || terraform workspace new default
-            terraform init
-            terraform apply -auto-approve -var-file="../$f"
-            cd ..
+          cd terraform
+          terraform init
+          for f in ../terraform/vars/*.auto.tfvars.json; do
+            terraform apply -auto-approve -var-file="$f"
           done
 
