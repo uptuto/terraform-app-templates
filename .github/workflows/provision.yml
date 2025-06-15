@@ -19,21 +19,21 @@ on:
 jobs:
   provision:
     runs-on: ubuntu-latest
-    env:
-      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
-
     steps:
       - uses: actions/checkout@v3
-
+      
       - name: Install Python deps
         run: pip install pyyaml
 
-      - name: Generate tfvars files using .py script
+      - name: Generate tfvars files
         run: |
-          ls -al
           mkdir -p terraform/vars
-          cd scripts
           python3 scripts/generate_tfvars.py
+
+      - name: Debug List contents of terraformvars
+        run: |
+          ls -l terraform/vars
+          cat terraform/vars/*.auto.tfvars.json
 
       - uses: hashicorp/setup-terraform@v3
 
@@ -42,5 +42,6 @@ jobs:
           cd terraform
           terraform init
           for f in ../terraform/vars/*.auto.tfvars.json; do
+            echo "Planning with $f"
             terraform plan -var-file="$f"
           done
