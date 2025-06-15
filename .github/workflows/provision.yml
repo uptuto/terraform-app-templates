@@ -18,22 +18,22 @@ jobs:
         run: |
           mkdir -p terraform/vars
           python3 -c "
-          import yaml, os, json
-          apps = yaml.safe_load(open('apps.yaml'))['apps']
-          for app in apps:
-          with open(f'terraform/vars/{app['app_name']}.auto.tfvars.json', 'w') as f:
-              json.dump(app, f)
-                  "
-  
-              - uses: hashicorp/setup-terraform@v3
-  
-              - name: Terraform Plan
-                  run: |
-                  for f in terraform/vars/*.auto.tfvars.json; do
-                      terraform workspace select default || terraform workspace new default
-                      terraform init
-                      terraform plan -var-file="$f"
-                  done
+import yaml, os, json
+apps = yaml.safe_load(open('apps.yaml'))['apps']
+for app in apps:
+  with open(f'terraform/vars/{app['app_name']}.auto.tfvars.json', 'w') as f:
+    json.dump(app, f)
+          "
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Plan
+        run: |
+          for f in terraform/vars/*.auto.tfvars.json; do
+            terraform workspace select default || terraform workspace new default
+            terraform init
+            terraform plan -var-file="$f"
+          done
 
       - name: Terraform Apply (Post-Merge Only)
         if: github.event_name == 'push'
