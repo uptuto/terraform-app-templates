@@ -36,6 +36,7 @@ jobs:
 
       - name: Terraform Init and Plan
         run: |
+          cd terraform
           for f in terraform/vars/*.auto.tfvars.json; do
             terraform workspace select default || terraform workspace new default
             terraform init
@@ -45,6 +46,7 @@ jobs:
       - name: Terraform Apply on Push to Main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
+          cd terraform
           for f in terraform/vars/*.auto.tfvars.json; do
             terraform workspace select default || terraform workspace new default
             terraform init
