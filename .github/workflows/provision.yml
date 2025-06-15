@@ -37,22 +37,21 @@ jobs:
         run: |
           cd terraform
           terraform init
-
+      
       - name: Terraform Plan
         run: |
           cd terraform
           for f in ../terraform/vars/*.auto.tfvars.json; do
-            terraform workspace select default || terraform workspace new default
             terraform plan -var-file="$f"
           done
-
+      
       - name: Terraform Apply on Push to Main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           cd terraform
           for f in ../terraform/vars/*.auto.tfvars.json; do
-            terraform workspace select default || terraform workspace new default
             terraform apply -auto-approve -var-file="$f"
           done
+
 
 
