@@ -18,7 +18,7 @@ jobs:
   provision:
     runs-on: ubuntu-latest
     env:
-      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
     steps:
       - uses: actions/checkout@v3
@@ -54,4 +54,5 @@ jobs:
             terraform workspace select default || terraform workspace new default
             terraform apply -auto-approve -var-file="$f"
           done
+
 
