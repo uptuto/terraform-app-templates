@@ -17,13 +17,17 @@ jobs:
       - name: Generate tfvars
         run: |
           mkdir -p terraform/vars
-          python3 -c "
+          python3 - <<EOF
 import yaml, os, json
-apps = yaml.safe_load(open('apps.yaml'))['apps']
+
+with open("apps.yaml") as f:
+    apps = yaml.safe_load(f)["apps"]
+
 for app in apps:
-  with open(f'terraform/vars/{app['app_name']}.auto.tfvars.json', 'w') as f:
-    json.dump(app, f)
-          "
+    path = f"terraform/vars/{app['app_name']}.auto.tfvars.json"
+    with open(path, "w") as tfvar_file:
+        json.dump(app, tfvar_file)
+EOF
 
       - uses: hashicorp/setup-terraform@v3
 
