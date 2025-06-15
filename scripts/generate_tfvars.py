@@ -1,7 +1,7 @@
+import os
 import yaml
 import json
 import sys
-import os
 
 try:
     with open('apps.yaml') as f:
@@ -10,6 +10,7 @@ except Exception as e:
     print(f'Failed to load apps.yaml: {e}')
     sys.exit(1)
 
+# Create the terraform/vars folder if it doesn't exist
 os.makedirs('terraform/vars', exist_ok=True)
 
 for app in apps:
@@ -17,4 +18,5 @@ for app in apps:
     print(f'Writing {path}')
     with open(path, 'w') as tfvar_file:
         json.dump(app, tfvar_file, indent=2)
+
 
