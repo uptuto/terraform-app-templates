@@ -5,7 +5,7 @@ locals {
 
 resource "github_repository" "repo" {
   name        = var.app_name
-  visibility  = "private"
+  visibility  = "public"
   auto_init   = true
 }
 
