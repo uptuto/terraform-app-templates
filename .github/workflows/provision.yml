@@ -29,6 +29,7 @@ jobs:
 
       - name: Generate tfvars files using .py script
         run: |
+          ls -al
           mkdir -p terraform/vars
           python3 scripts/generate_tfvars.py
 
