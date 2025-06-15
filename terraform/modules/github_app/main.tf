@@ -37,16 +37,19 @@ resource "github_team_repository" "permissions" {
   permission = each.value.permission
 }
 
-resource "github_branch_protection" "main" {
-  count = var.prd_protection ? 1 : 0
-  repository_id = github_repository.repo.name
+resource "github_branch_protection_v3" "main" {
+  count         = var.prd_protection ? 1 : 0
+  repository    = github_repository.repo.name
   pattern       = "main"
 
   required_pull_request_reviews {
     required_approving_review_count = 2
   }
+}
 
-  restrictions {
-    teams = [github_team.teams["approver"].slug]
-  }
+resource "github_branch_protection_v3_restrictions" "main" {
+  count      = var.prd_protection ? 1 : 0
+  repository = github_repository.repo.name
+  branch     = github_branch_protection_v3.main[0].pattern
+  teams      = [github_team.teams["approver"].slug]
 }
