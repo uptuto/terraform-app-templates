@@ -1,3 +1,4 @@
+# ─── .github/workflows/provision.yml ──────────────────────────────────
 name: "Provision GitHub Apps"
 
 on:
@@ -26,7 +27,7 @@ jobs:
       - name: Install Python deps
         run: pip install pyyaml
 
-      - name: Generate tfvars files from apps.yaml
+      - name: Generate tfvars files using .py script
         run: |
           mkdir -p terraform/vars
           python3 scripts/generate_tfvars.py
@@ -35,15 +36,8 @@ jobs:
 
       - name: Terraform Plan
         run: |
-         for f in terraform/vars/*.auto.tfvars.json; do
-            terraform -chdir=terraform init
-            terraform -chdir=terraform plan -var-file="../$f"
-          done
-
-      - name: Terraform Apply (Post-Merge Only)
-        if: github.event_name == 'push'
-        run: |
-          for f in terraform/vars/*.auto.tfvars.json; do
-            terraform -chdir=terraform init
-            terraform -chdir=terraform apply -auto-approve -var-file="../$f"
+          cd terraform
+          terraform init
+          for f in ../terraform/vars/*.auto.tfvars.json; do
+            terraform plan -var-file="$f"
           done
