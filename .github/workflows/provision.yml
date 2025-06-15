@@ -35,7 +35,7 @@ jobs:
 
       - name: Terraform Plan
         run: |
-          for f in terraform/vars/*.auto.tfvars.json; do
+         for f in terraform/vars/*.auto.tfvars.json; do
             terraform -chdir=terraform init
             terraform -chdir=terraform plan -var-file="../$f"
           done
