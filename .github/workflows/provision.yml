@@ -1,37 +1,40 @@
 name: "Provision GitHub Apps"
+
 on:
   pull_request:
     paths:
       - 'apps.yaml'
       - 'terraform/**'
+      - 'scripts/generate_tfvars.py'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps.yaml'
+      - 'terraform/**'
+      - 'scripts/generate_tfvars.py'
 
 jobs:
   provision:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
       - name: Install Python deps
         run: pip install pyyaml
 
-      - name: Generate tfvars
+      - name: Generate tfvars files from apps.yaml
         run: |
           mkdir -p terraform/vars
-          python3 - <<EOF
-import yaml, os, json
+          python3 scripts/generate_tfvars.py
 
-with open("apps.yaml") as f:
-    apps = yaml.safe_load(f)["apps"]
-
-for app in apps:
-    path = f"terraform/vars/{app['app_name']}.auto.tfvars.json"
-    with open(path, "w") as tfvar_file:
-        json.dump(app, tfvar_file)
-EOF
+      - name: List generated tfvars files
+        run: ls -l terraform/vars/
 
       - uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Plan
+      - name: Terraform Init and Plan
         run: |
           for f in terraform/vars/*.auto.tfvars.json; do
             terraform workspace select default || terraform workspace new default
@@ -39,8 +42,8 @@ EOF
             terraform plan -var-file="$f"
           done
 
-      - name: Terraform Apply (Post-Merge Only)
-        if: github.event_name == 'push'
+      - name: Terraform Apply on Push to Main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           for f in terraform/vars/*.auto.tfvars.json; do
             terraform workspace select default || terraform workspace new default
