@@ -1,0 +1,21 @@
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Fetch main branch
+        run: git fetch origin main
+
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform workspace select default || terraform workspace new default
+      - run: terraform init
+
+      - name: Update State File on Rename
+        run: |
+          git diff origin/main apps.yaml | grep '^[+-]' > changes.diff
+          OLD=$(cat changes.diff | grep '^-  - app_name:' | awk '{print $3}')
+          NEW=$(cat changes.diff | grep '^+  - app_name:' | awk '{print $3}')
+          terraform state pull > tfstate.json
+          sed -i "s/$OLD/$NEW/g" tfstate.json
+          terraform state push tfstate.json

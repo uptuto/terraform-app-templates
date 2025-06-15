@@ -1,0 +1,7 @@
+apps:
+  - app_name: app1
+    additional_envs: ["uat"]
+    prd_protection: true
+  - app_name: app2
+    additional_envs: []
+    prd_protection: false
