@@ -8,3 +8,4 @@ apps:
   - app_name: app3
     additional_envs: []
     prd_protection: false
+    
