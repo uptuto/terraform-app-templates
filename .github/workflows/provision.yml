@@ -42,7 +42,7 @@ jobs:
         run: |
           cd terraform
           for f in ../terraform/vars/*.auto.tfvars.json; do
-            terraform plan -var-file="$f"
+            terraform plan -var-file="$f" -out="$(basename "$f" .auto.tfvars.json).tfplan"
           done
       
       - name: Terraform Apply on Push to Main
@@ -50,8 +50,10 @@ jobs:
         run: |
           cd terraform
           for f in ../terraform/vars/*.auto.tfvars.json; do
-            terraform apply -auto-approve -var-file="$f"
+            plan_file="$(basename "$f" .auto.tfvars.json).tfplan"
+            terraform apply -auto-approve "$plan_file"
           done
+
 
 
 
