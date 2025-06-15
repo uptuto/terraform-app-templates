@@ -31,6 +31,7 @@ jobs:
         run: |
           ls -al
           mkdir -p terraform/vars
+          cd scripts
           python3 scripts/generate_tfvars.py
 
       - uses: hashicorp/setup-terraform@v3
