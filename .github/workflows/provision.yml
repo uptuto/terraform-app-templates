@@ -33,17 +33,16 @@ EOF
 
       - name: Terraform Plan
         run: |
-          for f in terraform/vars/*.auto.tfvars.json; do
-            terraform workspace select default || terraform workspace new default
-            terraform init
+          cd terraform
+          for f in ../terraform/vars/*.auto.tfvars.json; do
             terraform plan -var-file="$f"
           done
-
-      - name: Terraform Apply (Post-Merge Only)
-        if: github.event_name == 'push'
+      
+      - name: Terraform Apply on Push to Main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          for f in terraform/vars/*.auto.tfvars.json; do
-            terraform workspace select default || terraform workspace new default
-            terraform init
+          cd terraform
+          for f in ../terraform/vars/*.auto.tfvars.json; do
             terraform apply -auto-approve -var-file="$f"
           done
+
