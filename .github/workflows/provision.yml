@@ -1,0 +1,45 @@
+name: "Provision GitHub Apps"
+on:
+  pull_request:
+    paths:
+      - 'apps.yaml'
+      - 'terraform/**'
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Python deps
+        run: pip install pyyaml
+
+      - name: Generate tfvars
+        run: |
+          mkdir -p terraform/vars
+          python3 -c "
+            import yaml, os, json
+            apps = yaml.safe_load(open('apps.yaml'))['apps']
+            for app in apps:
+            with open(f'terraform/vars/{app['app_name']}.auto.tfvars.json', 'w') as f:
+                json.dump(app, f)
+                    "
+
+                - uses: hashicorp/setup-terraform@v3
+
+                - name: Terraform Plan
+                    run: |
+                    for f in terraform/vars/*.auto.tfvars.json; do
+                        terraform workspace select default || terraform workspace new default
+                        terraform init
+                        terraform plan -var-file="$f"
+                    done
+
+      - name: Terraform Apply (Post-Merge Only)
+        if: github.event_name == 'push'
+        run: |
+          for f in terraform/vars/*.auto.tfvars.json; do
+            terraform workspace select default || terraform workspace new default
+            terraform init
+            terraform apply -auto-approve -var-file="$f"
+          done
