@@ -17,10 +17,12 @@ on:
 jobs:
   provision:
     runs-on: ubuntu-latest
+    env:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
     steps:
       - uses: actions/checkout@v3
-
+      
       - name: Install Python deps
         run: pip install pyyaml
 
@@ -28,9 +30,6 @@ jobs:
         run: |
           mkdir -p terraform/vars
           python3 scripts/generate_tfvars.py
-
-      - name: List generated tfvars files
-        run: ls -l terraform/vars/
 
       - uses: hashicorp/setup-terraform@v3
 
@@ -55,3 +54,4 @@ jobs:
             terraform workspace select default || terraform workspace new default
             terraform apply -auto-approve -var-file="$f"
           done
+
