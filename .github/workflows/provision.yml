@@ -37,6 +37,11 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
 
+      - name: Authenticate with Terraform Cloud
+        run: echo 'credentials "app.terraform.io" { token = "${TF_API_TOKEN}" }' > ~/.terraformrc
+        env:
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
       - name: Terraform Plan
         run: |
           cd terraform
