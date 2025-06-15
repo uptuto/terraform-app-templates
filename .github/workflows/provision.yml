@@ -54,3 +54,8 @@ jobs:
             echo "Planning with $f"
             terraform plan -var-file="$f"
           done
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd terraform
+          terraform apply -auto-approve
