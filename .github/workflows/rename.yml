@@ -1,3 +1,10 @@
+# ─── .github/workflows/rename.yml ─────────────────────────────────────
+name: "Rename GitHub App"
+on:
+  pull_request:
+    paths:
+      - 'apps.yaml'
+
 jobs:
   rename:
     runs-on: ubuntu-latest
@@ -8,14 +15,22 @@ jobs:
         run: git fetch origin main
 
       - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
       - run: terraform workspace select default || terraform workspace new default
+
       - run: terraform init
 
       - name: Update State File on Rename
         run: |
-          git diff origin/main apps.yaml | grep '^[+-]' > changes.diff
+          git diff origin/main apps.yaml | grep '^[+-]' > changes.diff || echo "No changes"
           OLD=$(cat changes.diff | grep '^-  - app_name:' | awk '{print $3}')
           NEW=$(cat changes.diff | grep '^+  - app_name:' | awk '{print $3}')
-          terraform state pull > tfstate.json
-          sed -i "s/$OLD/$NEW/g" tfstate.json
-          terraform state push tfstate.json
+          if [[ -n "$OLD" && -n "$NEW" ]]; then
+            terraform state pull > tfstate.json
+            sed -i "s/$OLD/$NEW/g" tfstate.json
+            terraform state push tfstate.json
+          else
+            echo "No app name rename detected."
+          fi
