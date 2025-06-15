@@ -37,10 +37,9 @@ resource "github_team_repository" "permissions" {
   permission = each.value.permission
 }
 
-resource "github_branch_protection" "main" {
-  count = var.prd_protection ? 1 : 0
-  repository_id = github_repository.repo.name
-  pattern       = "main"
+resource "github_branch_protection_v3" "main" {
+  repository = github_repository.repo.name
+  branch     = "main"
 
   required_pull_request_reviews {
     required_approving_review_count = 2
@@ -50,3 +49,4 @@ resource "github_branch_protection" "main" {
     teams = [github_team.teams["approver"].slug]
   }
 }
+

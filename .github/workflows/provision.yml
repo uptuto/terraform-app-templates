@@ -1,48 +1,49 @@
 name: "Provision GitHub Apps"
+
 on:
   pull_request:
     paths:
       - 'apps.yaml'
       - 'terraform/**'
+      - 'scripts/generate_tfvars.py'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps.yaml'
+      - 'terraform/**'
+      - 'scripts/generate_tfvars.py'
 
 jobs:
   provision:
     runs-on: ubuntu-latest
+    env:
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+
     steps:
       - uses: actions/checkout@v3
 
       - name: Install Python deps
         run: pip install pyyaml
 
-      - name: Generate tfvars
+      - name: Generate tfvars files from apps.yaml
         run: |
           mkdir -p terraform/vars
-          python3 - <<EOF
-import yaml, os, json
-
-with open("apps.yaml") as f:
-    apps = yaml.safe_load(f)["apps"]
-
-for app in apps:
-    path = f"terraform/vars/{app['app_name']}.auto.tfvars.json"
-    with open(path, "w") as tfvar_file:
-        json.dump(app, tfvar_file)
-EOF
+          python3 scripts/generate_tfvars.py
 
       - uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Plan
         run: |
-          cd terraform
-          for f in ../terraform/vars/*.auto.tfvars.json; do
-            terraform plan -var-file="$f"
-          done
-      
-      - name: Terraform Apply on Push to Main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          cd terraform
-          for f in ../terraform/vars/*.auto.tfvars.json; do
-            terraform apply -auto-approve -var-file="$f"
+         for f in terraform/vars/*.auto.tfvars.json; do
+            terraform -chdir=terraform init
+            terraform -chdir=terraform plan -var-file="../$f"
           done
 
+      - name: Terraform Apply (Post-Merge Only)
+        if: github.event_name == 'push'
+        run: |
+          for f in terraform/vars/*.auto.tfvars.json; do
+            terraform -chdir=terraform init
+            terraform -chdir=terraform apply -auto-approve -var-file="../$f"
+          done
